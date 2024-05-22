@@ -3,18 +3,19 @@
 
 #include <QMainWindow>
 #include <QGraphicsScene>
+#include <QGraphicsView>
 #include <QTimer>
 #include "jugador.h"
 
-namespace Ui {
-class MainWindow;
-}
+QT_BEGIN_NAMESPACE
+namespace Ui { class MainWindow; }
+QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = nullptr);
+    MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
 private slots:
@@ -25,11 +26,7 @@ private slots:
     void on_btnIniciar_clicked();
     void actualizarEscena();
     void generarObjetosAutomaticamente();
-    void actualizarContadores();
-    void actualizarTiempo();
     void manejarDestruccionObjeto(const QString &tipoObjeto);
-    void objectDestroyedHandler(const QString &tipoObjeto);
-        void verificarColisiones();
 
 private:
     Ui::MainWindow *ui;
@@ -44,10 +41,14 @@ private:
     int tiempoRestante;
     bool modoJugador;
 
-protected:
-    void mousePressEvent(QMouseEvent *event) override;
-
+    void deshabilitarBotonesCreacionObjetos();
+    void verificarColisiones();
+    void actualizarTiempo();
+    void actualizarContadores();
 };
+
+#endif // MAINWINDOW_H
+
 
 #endif // MAINWINDOW_H
 
