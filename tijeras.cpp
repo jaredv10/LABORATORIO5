@@ -1,38 +1,33 @@
 #include "tijeras.h"
-#include <QPainter>
+#include <QPixmap>
 #include <QGraphicsScene>
-#include "papel.h"
-
-Tijeras::Tijeras() : imagen(":/images/tijera.png") {
-    imagen = imagen.scaledToWidth(50, Qt::SmoothTransformation);
-    // Posicionamiento inicial
+Tijeras::Tijeras() {
+    setPixmap(QPixmap(":/images/tijera.png").scaled(40, 40, Qt::KeepAspectRatio));
     if (qrand() % 2 == 0) {
-        setPos(0, qrand() % 600); // Izquierda
-        velocidad = QPointF(30, 0);
+        setPos(0, qrand() % 600); // Aparecer en el lado izquierdo
     } else {
-        setPos(800 - imagen.width(), qrand() % 600); // Derecha
-        velocidad = QPointF(-30, 0);
+        setPos(800 - boundingRect().width(), qrand() % 600);
     }
-}
-
-QRectF Tijeras::boundingRect() const {
-    int margen = 5;
-    return QRectF(-imagen.width() / 2 + margen, -imagen.height() / 2 + margen, imagen.width() - 2 * margen, imagen.height() - 2 * margen);
-}
-
-void Tijeras::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
-    Q_UNUSED(option);
-    Q_UNUSED(widget);
-    painter->drawPixmap(-imagen.width() / 2, -imagen.height() / 2, imagen);
 }
 
 void Tijeras::advance(int phase) {
     if (!phase) return;
+    setX(x() + 7);
+    if (x() > 800) {
+        scene()->removeItem(this);
+        delete this;
+    }
+}
 
-    QPointF newPos = pos() + velocidad;
-    setPos(newPos);
+void Tijeras::mover() {
 
-    if (newPos.x() < 0 || newPos.x() > 800 - imagen.width()) {
-        velocidad.rx() *= -1;
+    setPos(x() + 10, y());
+    
+
+
+
+    if (pos().x() > scene()->width() - pixmap().width()) {
+
+        setPos(scene()->width() - pixmap().width(), y());
     }
 }
