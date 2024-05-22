@@ -3,5 +3,6 @@
         <file>images/papel.png</file>
         <file>images/piedra.png</file>
         <file>images/tijera.png</file>
+        <file>images/jugador.png</file>
     </qresource>
 </RCC>
