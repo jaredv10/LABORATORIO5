@@ -1,44 +1,45 @@
 #include "papel.h"
-#include <QPainter>
+#include <QPixmap>
 #include <QGraphicsScene>
-#include "piedra.h"
 
-Papel::Papel() : imagen(":/images/papel.png") {
-    imagen = imagen.scaled(50, 50, Qt::KeepAspectRatio);
-    // Posicionamiento inicial
-    int esquina = qrand() % 4;
-    switch (esquina) {
-        case 0: setPos(0, 0); velocidad = QPointF(30, 30); break; // Esquina superior izquierda
-        case 1: setPos(750, 0); velocidad = QPointF(-30, 30); break; // Esquina superior derecha
-        case 2: setPos(0, 550); velocidad = QPointF(30, -30); break; // Esquina inferior izquierda
-        case 3: setPos(750, 550); velocidad = QPointF(-30, -30); break; // Esquina inferior derecha
+Papel::Papel() {
+    setPixmap(QPixmap(":/images/papel.png").scaled(40, 40, Qt::KeepAspectRatio));
+    // Generar en una de las esquinas
+    int corner = qrand() % 4;
+    switch (corner) {
+        case 0:
+            setPos(0, 0);
+            break;
+        case 1:
+            setPos(770, 0);
+            break;
+        case 2:
+            setPos(0, 570);
+            break;
+        case 3:
+            setPos(770, 570);
+            break;
     }
-}
-
-QRectF Papel::boundingRect() const {
-    int margen = 5;
-    return QRectF(-imagen.width() / 2 + margen, -imagen.height() / 2 + margen, imagen.width() - 2 * margen, imagen.height() - 2 * margen);
-}
-
-void Papel::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
-    Q_UNUSED(option);
-    Q_UNUSED(widget);
-    painter->drawPixmap(-imagen.width() / 2, -imagen.height() / 2, imagen);
+    dx = (corner == 1 || corner == 3) ? -3 : 3;
+    dy = (corner == 2 || corner == 3) ? -3 : 3;
 }
 
 void Papel::advance(int phase) {
     if (!phase) return;
-
-    QPointF newPos = pos() + velocidad;
-    setPos(newPos);
-
-    qreal sceneWidth = scene()->width();
-    qreal sceneHeight = scene()->height();
-
-    if (newPos.x() < 0 || newPos.x() > sceneWidth - imagen.width()) {
-        velocidad.rx() *= -1;
+    moveBy(dx, dy);
+    if (x() < 0 || x() > 770 || y() < 0 || y() > 570) {
+        scene()->removeItem(this);
+        delete this;
     }
-    if (newPos.y() < 0 || newPos.y() > sceneHeight - imagen.height()) {
-        velocidad.ry() *= -1;
+}
+void Papel::mover() {
+
+    setPos(x() + 10, y() - 10);
+
+
+    if (pos().y() < 0 || pos().x() > scene()->width()) {
+
+        scene()->removeItem(this);
+        delete this;
     }
 }
