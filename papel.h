@@ -1,20 +1,19 @@
 #ifndef PAPEL_H
 #define PAPEL_H
-#include <QGraphicsPixmapItem>
-#include <QGraphicsItem>
-#include <QPixmap>
 
-class Papel : public QGraphicsPixmapItem
-{
+#include <QGraphicsPixmapItem>
+#include <QTimer>
+class Papel : public QGraphicsPixmapItem {
 public:
     Papel();
-    QRectF boundingRect() const override;
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     void advance(int phase) override;
 
 private:
-    QPixmap imagen;
-    QPointF velocidad;
+    int dx;
+    int dy;
+    void mover();
+
 };
 
 #endif // PAPEL_H
+
