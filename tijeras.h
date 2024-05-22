@@ -1,20 +1,17 @@
 #ifndef TIJERAS_H
 #define TIJERAS_H
+#include <QObject>
 #include <QGraphicsPixmapItem>
-#include <QGraphicsItem>
-#include <QPixmap>
-
-class Tijeras : public QGraphicsPixmapItem
-{
+#include <QTimer>
+class Tijeras : public QGraphicsPixmapItem {
 public:
     Tijeras();
-    QRectF boundingRect() const override;
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     void advance(int phase) override;
 
 private:
-    QPixmap imagen;
-    QPointF velocidad;
+    int dx;
+    void mover();
+
 };
 
 #endif // TIJERAS_H
