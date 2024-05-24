@@ -26,10 +26,14 @@ MainWindow::MainWindow(QWidget *parent)
     escena = new QGraphicsScene(0, 0, 800, 600, this);
     ui->graphicsView->setScene(escena);
 
-    timer = new QTimer(this);
+    timer = new QTimer(this);  // Temporizador para los objetos
     connect(timer, &QTimer::timeout, this, &MainWindow::actualizarEscena);
-    timerGeneracion = new QTimer(this);
+
+    timerGeneracion = new QTimer(this); // Temporizador para la generación de objetos
     connect(timerGeneracion, &QTimer::timeout, this, &MainWindow::generarObjetosAutomaticamente);
+
+    timerTiempo = new QTimer(this); // Temporizador para el tiempo restante
+    connect(timerTiempo, &QTimer::timeout, this, &MainWindow::actualizarTiempo);
 
     QVBoxLayout *layoutVertical = new QVBoxLayout(ui->centralwidget);
     ui->centralwidget->setLayout(layoutVertical);
@@ -46,8 +50,6 @@ MainWindow::MainWindow(QWidget *parent)
     layoutVertical->addWidget(ui->lblContadorPapel);
     layoutVertical->addWidget(ui->lblPuntajeJugador);
 
-
-
     jugador = new Jugador();
     escena->addItem(jugador);
     jugador->setFlag(QGraphicsItem::ItemIsFocusable);
@@ -61,7 +63,6 @@ MainWindow::~MainWindow() {
 
 void MainWindow::on_btnAgregarTijeras_clicked() {
     if (contadorTijeras < 5) {
-
         bool colision;
         Tijeras *tijeras;
         do {
@@ -84,7 +85,6 @@ void MainWindow::on_btnAgregarTijeras_clicked() {
 
 void MainWindow::on_btnAgregarPiedra_clicked() {
     if (contadorPiedra < 5) {
-
         bool colision;
         Piedra *piedra;
         do {
@@ -107,133 +107,77 @@ void MainWindow::on_btnAgregarPiedra_clicked() {
 
 void MainWindow::on_btnAgregarPapel_clicked() {
     if (contadorPapel < 5) {
-        Papel *papel = new Papel();
+        bool colision;
+        Papel *papel;
+        do {
+            colision = false;
+            papel = new Papel();
+            QList<QGraphicsItem*> items = escena->items(papel->boundingRect());
+            for (QGraphicsItem *item : items) {
+                if (dynamic_cast<Papel*>(item)) {
+                    colision = true;
+                    delete papel;
+                    break;
+                }
+            }
+        } while (colision);
         escena->addItem(papel);
         contadorPapel++;
         actualizarContadores();
     }
 }
 
-void MainWindow::actualizarEscena() {
-    escena->advance();
-    verificarColisiones();
-    actualizarTiempo();
-}
-
-
-void MainWindow::deshabilitarBotonesCreacionObjetos() {
-    ui->btnAgregarTijeras->setDisabled(true);
-    ui->btnAgregarPiedra->setDisabled(true);
-    ui->btnAgregarPapel->setDisabled(true);
-}
-
 void MainWindow::on_btnIngresarJugador_clicked() {
     modoJugador = true;
-    tiempoRestante = 300;
-    jugador->setPos(375, 275);
-    timer->start(1000);
-    deshabilitarBotonesCreacionObjetos();
+    jugador->setFocus();
 
     QMessageBox::information(this, "Mensaje", "Para mover al jugador utilice las teclas de direccion. Y para dispararle a los objetos con la tecla space .");
 }
 
 void MainWindow::on_btnIniciar_clicked() {
-    timer->start(1000);
+    timer->start(1000 / 40); // Actualizar objetos a 60 FPS
     timerGeneracion->start(10000);
+    timerTiempo->start(1000);
 
     QMessageBox::information(this, "Mensaje", "Bienvenido al juego Papel, Tijera y Piedra,Disfrutelo\
-PD: tienes 5:00 minutos para jugar.");
+    PD: tienes 5:00 minutos para jugar.");
 }
 
-
-
-void MainWindow::generarObjetosAutomaticamente() {
-    if (contadorTijeras < 5) {
-        Tijeras *tijeras = new Tijeras();
-        escena->addItem(tijeras);
-        contadorTijeras++;
-    }
-    if (contadorPiedra < 5) {
-        Piedra *piedra = new Piedra();
-        escena->addItem(piedra);
-        contadorPiedra++;
-    }
-    if (contadorPapel < 5) {
-        Papel *papel = new Papel();
-        escena->addItem(papel);
-        contadorPapel++;
-    }
-    actualizarContadores();
-}
-
-void MainWindow::manejarDestruccionObjeto(const QString &tipoObjeto) {
-    if (tipoObjeto == "Tijeras") {
-        contadorTijeras--;
-        puntajeJugador++;
-    } else if (tipoObjeto == "Piedra") {
-        contadorPiedra--;
-        puntajeJugador++;
-    } else if (tipoObjeto == "Papel") {
-        contadorPapel--;
-        puntajeJugador++;
-    }
-    actualizarContadores();
+void MainWindow::actualizarEscena() {
+    escena->advance();
+    verificarColisiones();
 }
 
 void MainWindow::verificarColisiones() {
-    QList<QGraphicsItem *> items = escena->items();
-    QSet<QGraphicsItem *> itemsParaEliminar;
-
-    for (QGraphicsItem *item1 : items) {
-        for (QGraphicsItem *item2 : items) {
-            if (item1 == item2) continue;
-            if (item1->collidesWithItem(item2)) {
-                if ((dynamic_cast<Tijeras*>(item1) && dynamic_cast<Papel*>(item2)) ||
-                    (dynamic_cast<Tijeras*>(item2) && dynamic_cast<Papel*>(item1))) {
-                    itemsParaEliminar.insert(item1);
-                    itemsParaEliminar.insert(item2);
-                    puntajeJugador += 2;
-                } else if ((dynamic_cast<Piedra*>(item1) && dynamic_cast<Tijeras*>(item2)) ||
-                           (dynamic_cast<Piedra*>(item2) && dynamic_cast<Tijeras*>(item1))) {
-                    itemsParaEliminar.insert(item1);
-                    itemsParaEliminar.insert(item2);
-                    puntajeJugador += 2;
-                } else if ((dynamic_cast<Papel*>(item1) && dynamic_cast<Piedra*>(item2)) ||
-                           (dynamic_cast<Papel*>(item2) && dynamic_cast<Piedra*>(item1))) {
-                    itemsParaEliminar.insert(item1);
-                    itemsParaEliminar.insert(item2);
-                    puntajeJugador += 2;
+    QList<QGraphicsItem*> items = escena->items();
+    for (QGraphicsItem *item : items) {
+        if (auto *tijeras = dynamic_cast<Tijeras*>(item)) {
+            QList<QGraphicsItem*> colisiones = tijeras->collidingItems();
+            for (QGraphicsItem *colision : colisiones) {
+                if (auto *papel = dynamic_cast<Papel*>(colision)) {
+                    escena->removeItem(papel);
+                    delete papel;
+                }
+            }
+        } else if (auto *piedra = dynamic_cast<Piedra*>(item)) {
+            QList<QGraphicsItem*> colisiones = piedra->collidingItems();
+            for (QGraphicsItem *colision : colisiones) {
+                if (auto *tijeras = dynamic_cast<Tijeras*>(colision)) {
+                    escena->removeItem(tijeras);
+                    delete tijeras;
+                }
+            }
+        } else if (auto *papel = dynamic_cast<Papel*>(item)) {
+            QList<QGraphicsItem*> colisiones = papel->collidingItems();
+            for (QGraphicsItem *colision : colisiones) {
+                if (auto *piedra = dynamic_cast<Piedra*>(colision)) {
+                    escena->removeItem(piedra);
+                    delete piedra;
                 }
             }
         }
     }
-
-    for (QGraphicsItem *item : itemsParaEliminar) {
-        escena->removeItem(item);
-        if (dynamic_cast<Tijeras*>(item)) {
-            contadorTijeras--;
-        } else if (dynamic_cast<Piedra*>(item)) {
-            contadorPiedra--;
-        } else if (dynamic_cast<Papel*>(item)) {
-            contadorPapel--;
-        }
-        delete item;
-    }
-
-    actualizarContadores();
 }
-
-void MainWindow::actualizarTiempo() {
-    tiempoRestante--;
-    ui->lblTiempo->setText("Tiempo restante: " + QString::number(tiempoRestante));
-    ui->lblPuntajeJugador->setText("Puntaje: " + QString::number(puntajeJugador));
-    if (tiempoRestante <= 0) {
-        timer->stop();
-        timerGeneracion->stop();
-        QMessageBox::information(this, "Tiempo agotado", "El tiempo se ha agotado. Puntaje: " + QString::number(puntajeJugador));
-    }
-}
-
 
 void MainWindow::actualizarContadores() {
     ui->lblContadorTijeras->setText("Tijeras: " + QString::number(contadorTijeras));
@@ -241,3 +185,50 @@ void MainWindow::actualizarContadores() {
     ui->lblContadorPapel->setText("Papel: " + QString::number(contadorPapel));
 }
 
+void MainWindow::actualizarTiempo() {
+    if (tiempoRestante > 0) {
+        tiempoRestante--;
+        ui->lblTiempo->setText("Tiempo restante: " + QString::number(tiempoRestante));
+    } else {
+        timer->stop();
+        timerGeneracion->stop();
+        timerTiempo->stop();
+        QMessageBox::information(this, "Tiempo finalizado", "El tiempo se ha agotado.");
+    }
+}
+
+void MainWindow::generarObjetosAutomaticamente() {
+    int tipoObjeto = qrand() % 3;
+
+    switch (tipoObjeto) {
+        case 0:
+            on_btnAgregarTijeras_clicked();
+            break;
+        case 1:
+            on_btnAgregarPiedra_clicked();
+            break;
+        case 2:
+            on_btnAgregarPapel_clicked();
+            break;
+    }
+}
+
+void MainWindow::deshabilitarBotonesCreacionObjetos() {
+    ui->btnAgregarTijeras->setEnabled(false);
+    ui->btnAgregarPiedra->setEnabled(false);
+    ui->btnAgregarPapel->setEnabled(false);
+}
+
+void MainWindow::manejarDestruccionObjeto(const QString &tipoObjeto) {
+    if (tipoObjeto == "Tijeras") {
+        contadorTijeras--;
+    } else if (tipoObjeto == "Piedra") {
+        contadorPiedra--;
+    } else if (tipoObjeto == "Papel") {
+        contadorPapel--;
+    }
+
+    puntajeJugador++;
+    ui->lblPuntajeJugador->setText("Puntaje: " + QString::number(puntajeJugador));
+    actualizarContadores();
+}
