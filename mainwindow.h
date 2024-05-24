@@ -1,17 +1,16 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
-
+#include "jugador.h"
 #include <QMainWindow>
 #include <QGraphicsScene>
-#include <QGraphicsView>
 #include <QTimer>
-#include "jugador.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
-class MainWindow : public QMainWindow {
+class MainWindow : public QMainWindow
+{
     Q_OBJECT
 
 public:
@@ -25,6 +24,7 @@ private slots:
     void on_btnIngresarJugador_clicked();
     void on_btnIniciar_clicked();
     void actualizarEscena();
+    void actualizarTiempo();
     void generarObjetosAutomaticamente();
     void manejarDestruccionObjeto(const QString &tipoObjeto);
 
@@ -33,21 +33,19 @@ private:
     QGraphicsScene *escena;
     QTimer *timer;
     QTimer *timerGeneracion;
-    Jugador *jugador;
+    QTimer *timerTiempo;
     int contadorTijeras;
     int contadorPiedra;
     int contadorPapel;
     int puntajeJugador;
     int tiempoRestante;
     bool modoJugador;
+    Jugador *jugador;
 
-    void deshabilitarBotonesCreacionObjetos();
-    void verificarColisiones();
-    void actualizarTiempo();
     void actualizarContadores();
+    void verificarColisiones();
+    void deshabilitarBotonesCreacionObjetos();
+
 };
 
 #endif // MAINWINDOW_H
-
-
-
